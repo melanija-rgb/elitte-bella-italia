@@ -89,7 +89,7 @@ export default function ReservationSection() {
 
   if (!mounted) {
     return (
-      <section id="rezervacija" className="bg-page px-5 py-20 md:px-8">
+      <section id="rezervacija" className="bg-page px-4 py-14 sm:px-5 sm:py-20 md:px-8">
         <div className="mx-auto max-w-6xl text-center text-[var(--color-muted)]">
           Učitavanje rezervacija...
         </div>
@@ -99,10 +99,10 @@ export default function ReservationSection() {
 
   if (confirmed && selectedSlot) {
     return (
-      <section id="rezervacija" className="bg-page px-5 py-20 md:px-8">
+      <section id="rezervacija" className="bg-page px-4 py-14 sm:px-5 sm:py-20 md:px-8">
         <div className="mx-auto max-w-lg text-center">
           <CheckCircle className="mx-auto h-14 w-14 text-primary" />
-          <h2 className="mt-5 font-display text-4xl text-white">
+          <h2 className="mt-5 font-display text-3xl text-white sm:text-4xl">
             Sto je rezervisan
           </h2>
           <p className="mt-3 text-[var(--color-muted)]">
@@ -140,27 +140,27 @@ export default function ReservationSection() {
   }
 
   return (
-    <section id="rezervacija" className="bg-page px-5 py-20 md:px-8">
+    <section id="rezervacija" className="bg-page px-4 py-14 sm:px-5 sm:py-20 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10 max-w-2xl">
-          <p className="text-sm tracking-[0.3em] text-primary uppercase">
+        <div className="mb-8 max-w-2xl sm:mb-10">
+          <p className="text-xs tracking-[0.25em] text-primary uppercase sm:text-sm sm:tracking-[0.3em]">
             Rezervacija
           </p>
-          <h2 className="mt-3 font-display text-4xl text-white md:text-5xl">
+          <h2 className="mt-3 font-display text-3xl text-white sm:text-4xl md:text-5xl">
             Rezervišite sto
           </h2>
-          <p className="mt-4 text-[var(--color-muted)]">
+          <p className="mt-3 text-sm text-[var(--color-muted)] sm:mt-4 sm:text-base">
             Označite datum i vrijeme, zatim upišite ime i prezime, broj telefona
             i za koliko osoba vam treba sto. Šef restorana pregleda rezervacije
             u admin panelu.
           </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-5">
+        <div className="grid gap-6 lg:grid-cols-5 lg:gap-8">
           <div className="lg:col-span-3">
-            <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-5 md:p-6">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="font-display text-2xl text-white">
+            <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-3 sm:p-5 md:p-6">
+              <div className="mb-4 flex items-center justify-between gap-2 sm:mb-6">
+                <h3 className="font-display text-xl text-white sm:text-2xl">
                   {MONTHS_SR[currentMonth.getMonth()]}{" "}
                   {currentMonth.getFullYear()}
                 </h3>
@@ -198,18 +198,18 @@ export default function ReservationSection() {
                 </div>
               </div>
 
-              <div className="mb-2 grid grid-cols-7 gap-1">
+              <div className="mb-1 grid grid-cols-7 gap-0.5 sm:mb-2 sm:gap-1">
                 {DAYS_SR.map((d) => (
                   <div
                     key={d}
-                    className="py-2 text-center text-xs font-medium text-[var(--color-muted)]"
+                    className="py-1.5 text-center text-[10px] font-medium text-[var(--color-muted)] sm:py-2 sm:text-xs"
                   >
                     {d}
                   </div>
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                 {calendarDays.map((day) => {
                   const dateKey = format(day, "yyyy-MM-dd");
                   const hasSlots = slotsByDate.has(dateKey);
@@ -229,7 +229,7 @@ export default function ReservationSection() {
                         setSelectedSlot(null);
                       }}
                       className={cn(
-                        "relative flex flex-col items-center rounded-md py-3 text-sm transition-colors",
+                        "relative flex min-h-10 flex-col items-center justify-center rounded-md py-2 text-xs transition-colors sm:min-h-0 sm:py-3 sm:text-sm",
                         !inMonth && "text-white/20",
                         inMonth && !hasSlots && "text-white/25",
                         inMonth &&
@@ -244,12 +244,20 @@ export default function ReservationSection() {
                       {hasSlots && !isPast && inMonth && (
                         <span
                           className={cn(
-                            "mt-0.5 text-[10px]",
+                            "mt-0.5 hidden text-[10px] sm:block",
                             isSelected ? "text-black/70" : "text-primary"
                           )}
                         >
                           {count} term.
                         </span>
+                      )}
+                      {hasSlots && !isPast && inMonth && (
+                        <span
+                          className={cn(
+                            "mt-0.5 h-1 w-1 rounded-full sm:hidden",
+                            isSelected ? "bg-black/50" : "bg-primary"
+                          )}
+                        />
                       )}
                     </button>
                   );
@@ -258,8 +266,8 @@ export default function ReservationSection() {
             </div>
 
             {selectedDate && (
-              <div className="mt-6 border border-[var(--color-border)] bg-[var(--color-surface)] p-5 md:p-6">
-                <h3 className="mb-4 font-display text-xl text-white">
+              <div className="mt-4 border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:mt-6 sm:p-5 md:p-6">
+                <h3 className="mb-3 font-display text-lg text-white sm:mb-4 sm:text-xl">
                   Vrijeme —{" "}
                   {format(selectedDate, "d. MMMM yyyy.", { locale: sr })}
                 </h3>
@@ -275,13 +283,13 @@ export default function ReservationSection() {
                         type="button"
                         onClick={() => setSelectedSlot(slot)}
                         className={cn(
-                          "flex items-center justify-center gap-1.5 rounded-md border px-3 py-2.5 text-sm font-medium transition-colors",
+                          "flex min-h-11 items-center justify-center gap-1.5 rounded-md border px-2 py-2.5 text-sm font-medium transition-colors sm:px-3",
                           selectedSlot?.id === slot.id
                             ? "selected-slot"
                             : "slot-available border-[var(--color-border)] hover:border-primary"
                         )}
                       >
-                        <Clock className="h-3.5 w-3.5" />
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
                         {slot.time}
                       </button>
                     ))}
@@ -292,8 +300,8 @@ export default function ReservationSection() {
           </div>
 
           <div className="lg:col-span-2">
-            <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-5 md:sticky md:top-8 md:p-6">
-              <h3 className="font-display text-2xl text-white">Vaši podaci</h3>
+            <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-5 md:sticky md:top-8 md:p-6">
+              <h3 className="font-display text-xl text-white sm:text-2xl">Vaši podaci</h3>
               <p className="mt-1 text-sm text-[var(--color-muted)]">
                 Popunite formu da rezervišete sto.
               </p>

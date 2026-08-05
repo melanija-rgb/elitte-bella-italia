@@ -17,8 +17,10 @@ export default function SiteHeader() {
 
   return (
     <header className="absolute inset-x-0 top-0 z-40">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8">
-        <Logo />
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5 md:px-8">
+        <div className="min-w-0 flex-1">
+          <Logo />
+        </div>
         <nav className="hidden items-center gap-8 md:flex">
           {LINKS.map((link) => (
             <a
@@ -38,27 +40,32 @@ export default function SiteHeader() {
         </nav>
         <button
           type="button"
-          className="text-white md:hidden"
+          className="flex h-11 w-11 shrink-0 items-center justify-center text-white md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Zatvori meni" : "Otvori meni"}
+          aria-expanded={open}
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
       {open && (
-        <div className="border-t border-white/10 bg-black/95 px-5 py-4 md:hidden">
-          <nav className="flex flex-col gap-3">
+        <div className="border-t border-white/10 bg-black/95 px-4 py-3 md:hidden">
+          <nav className="flex flex-col">
             {LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className="py-1 text-sm text-white/85"
+                className="border-b border-white/5 py-3.5 text-base text-white/90"
               >
                 {link.label}
               </a>
             ))}
-            <a href="/admin" className="py-1 text-sm text-white/40">
+            <a
+              href="/admin"
+              className="py-3.5 text-sm text-white/40"
+              onClick={() => setOpen(false)}
+            >
               Admin
             </a>
           </nav>

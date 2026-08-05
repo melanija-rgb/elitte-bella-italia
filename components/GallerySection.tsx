@@ -5,27 +5,27 @@ import { GALLERY } from "@/lib/restaurant";
 
 export default function GallerySection() {
   return (
-    <section id="galerija" className="bg-black px-5 py-20 md:px-8">
+    <section id="galerija" className="bg-black px-4 py-14 sm:px-5 sm:py-20 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-10 max-w-2xl">
-          <p className="text-sm tracking-[0.3em] text-primary uppercase">
+        <div className="mb-8 max-w-2xl sm:mb-10">
+          <p className="text-xs tracking-[0.25em] text-primary uppercase sm:text-sm sm:tracking-[0.3em]">
             Galerija
           </p>
-          <h2 className="mt-3 font-display text-4xl text-white md:text-5xl">
+          <h2 className="mt-3 font-display text-3xl text-white sm:text-4xl md:text-5xl">
             Ukus koji se vidi
           </h2>
-          <p className="mt-4 text-[var(--color-muted)]">
+          <p className="mt-3 text-sm text-[var(--color-muted)] sm:mt-4 sm:text-base">
             Pizza, deserti, ambijent i trenuci iz Elitte Bella Italia.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4">
           {GALLERY.map((item, i) => (
             <div
               key={item.src}
               className={`relative overflow-hidden ${
-                i === 0 || i === 5 ? "md:col-span-2 md:row-span-1" : ""
-              } aspect-[4/3]`}
+                i === 0 ? "col-span-2 aspect-[16/10] md:aspect-[4/3]" : "aspect-square sm:aspect-[4/3]"
+              } ${i === 5 ? "md:col-span-2" : ""}`}
             >
               <Image
                 src={item.src}
