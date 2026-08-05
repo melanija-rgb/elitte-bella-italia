@@ -1,0 +1,134 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #c4a35a;
+  --color-primary-hover: #a8883f;
+  --color-dark: #f5f0e8;
+  --color-bg: #0a0a0a;
+  --color-light: #1a1510;
+  --color-primary-ring: #c4a35a33;
+  --color-muted: #9a9080;
+  --color-surface: #121212;
+  --color-border: #2a2420;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-dark);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+.text-dark {
+  color: var(--color-dark);
+}
+.bg-primary {
+  background-color: var(--color-primary);
+}
+.bg-primary-hover:hover {
+  background-color: var(--color-primary-hover);
+}
+.bg-page {
+  background-color: var(--color-bg);
+}
+.bg-accent-light {
+  background-color: var(--color-light);
+}
+.border-primary {
+  border-color: var(--color-primary);
+}
+.hover\:text-primary:hover {
+  color: var(--color-primary);
+}
+.hover\:bg-primary-hover:hover {
+  background-color: var(--color-primary-hover);
+}
+.hover\:border-primary:hover {
+  border-color: var(--color-primary);
+}
+.focus\:border-primary:focus {
+  border-color: var(--color-primary);
+}
+.focus\:ring-primary:focus {
+  --tw-ring-color: var(--color-primary-ring);
+}
+.ring-primary {
+  --tw-ring-color: var(--color-primary-ring);
+}
+
+.selected-day {
+  background-color: var(--color-primary);
+  color: #0a0a0a;
+}
+.selected-day:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.selected-slot {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: #0a0a0a;
+}
+
+.slot-available {
+  color: var(--color-dark);
+}
+.slot-available:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.tab-active {
+  background-color: var(--color-primary);
+  color: #0a0a0a;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero {
+  animation: hero-fade 1.1s ease-out both;
+}
+
+.animate-rise {
+  animation: rise-in 0.8s ease-out both;
+}
+
+.animate-rise-delay {
+  animation: rise-in 0.9s ease-out 0.15s both;
+}
+
+.section-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-primary),
+    transparent
+  );
+}
