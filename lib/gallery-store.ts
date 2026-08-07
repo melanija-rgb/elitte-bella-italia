@@ -119,26 +119,27 @@ export async function addGalleryImage(
 
   const id = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const ext = extensionFromType(file.type);
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const arrayBuffer = await file.arrayBuffer();
+  const bytes = Buffer.from(arrayBuffer);
   let src: string;
 
   if (useNetlifyBlobs()) {
     try {
       const store = getStore({ name: STORE_NAME, consistency: "strong" });
-      await store.set(`img-${id}`, buffer, {
+      await store.set(`img-${id}`, arrayBuffer, {
         metadata: { contentType: file.type, alt },
       });
       src = `/api/gallery/file/${id}`;
     } catch {
       await ensureDirs();
       const filename = `${id}.${ext}`;
-      await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
+      await fs.writeFile(path.join(UPLOAD_DIR, filename), bytes);
       src = `/galerija/uploads/${filename}`;
     }
   } else {
     await ensureDirs();
     const filename = `${id}.${ext}`;
-    await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
+    await fs.writeFile(path.join(UPLOAD_DIR, filename), bytes);
     src = `/galerija/uploads/${filename}`;
   }
 
@@ -187,7 +188,7 @@ export async function deleteGalleryImage(id: string): Promise<void> {
 
 export async function getGalleryFile(
   id: string
-): Promise<{ data: ArrayBuffer | Buffer; contentType: string } | null> {
+): Promise<{ data: ArrayBuffer; contentType: string } | null> {
   if (useNetlifyBlobs()) {
     try {
       const store = getStore({ name: STORE_NAME, consistency: "strong" });
@@ -197,7 +198,10 @@ export async function getGalleryFile(
       if (result?.data) {
         const contentType =
           (result.metadata?.contentType as string) || "image/jpeg";
-        return { data: result.data as ArrayBuffer, contentType };
+        return {
+          data: result.data as ArrayBuffer,
+          contentType,
+        };
       }
     } catch {
       /* fall through */
@@ -211,7 +215,11 @@ export async function getGalleryFile(
   const filename = path.basename(item.src);
   const filePath = path.join(UPLOAD_DIR, filename);
   try {
-    const data = await fs.readFile(filePath);
+    const buf = await fs.readFile(filePath);
+    const data = buf.buffer.slice(
+      buf.byteOffset,
+      buf.byteOffset + buf.byteLength
+    ) as ArrayBuffer;
     const ext = path.extname(filename).toLowerCase();
     const contentType =
       ext === ".png"

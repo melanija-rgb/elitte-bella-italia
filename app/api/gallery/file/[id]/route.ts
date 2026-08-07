@@ -11,12 +11,7 @@ export async function GET(_request: Request, { params }: Params) {
     return NextResponse.json({ error: "Nije pronađeno." }, { status: 404 });
   }
 
-  const body =
-    file.data instanceof Buffer
-      ? new Uint8Array(file.data)
-      : new Uint8Array(file.data);
-
-  return new NextResponse(body, {
+  return new NextResponse(file.data, {
     headers: {
       "Content-Type": file.contentType,
       "Cache-Control": "public, max-age=31536000, immutable",
