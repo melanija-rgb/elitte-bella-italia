@@ -46,3 +46,8 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# Admin gallery uploads (runtime)
+/data/gallery.json
+/public/galerija/uploads/*
+!/public/galerija/uploads/.gitkeep

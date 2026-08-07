@@ -2,6 +2,24 @@ import { Booking, TimeSlot } from "./types";
 
 const SLOTS_KEY = "elitte_slots";
 const BOOKINGS_KEY = "elitte_bookings";
+const SEED_VERSION_KEY = "elitte_slots_seed_version";
+const SEED_VERSION = "9-21-hourly";
+
+const BOOKING_TIMES = [
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+  "21:00",
+];
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -18,28 +36,20 @@ function write<T>(key: string, data: T): void {
 }
 
 function seedIfEmpty(): void {
+  if (typeof window === "undefined") return;
+
+  const version = localStorage.getItem(SEED_VERSION_KEY);
   const slots = read<TimeSlot[]>(SLOTS_KEY, []);
-  if (slots.length > 0) return;
+  if (slots.length > 0 && version === SEED_VERSION) return;
 
   const today = new Date();
   const demo: TimeSlot[] = [];
-  const times = [
-    "12:00",
-    "13:00",
-    "14:00",
-    "17:00",
-    "18:00",
-    "19:00",
-    "20:00",
-    "21:00",
-    "22:00",
-  ];
 
   for (let d = 0; d <= 21; d++) {
     const date = new Date(today);
     date.setDate(today.getDate() + d);
     const dateStr = date.toISOString().split("T")[0];
-    times.forEach((time, i) => {
+    BOOKING_TIMES.forEach((time, i) => {
       demo.push({
         id: `demo-${d}-${i}`,
         date: dateStr,
@@ -49,6 +59,7 @@ function seedIfEmpty(): void {
   }
 
   write(SLOTS_KEY, demo);
+  localStorage.setItem(SEED_VERSION_KEY, SEED_VERSION);
 }
 
 export function getAllSlots(): TimeSlot[] {

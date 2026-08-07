@@ -20,3 +20,11 @@ export type BookingFormData = {
   phone: string;
   guests: number;
 };
+
+export type GalleryItem = {
+  id: string;
+  src: string;
+  alt: string;
+  /** true = uploaded by admin (can delete file from disk/blobs) */
+  uploaded?: boolean;
+};

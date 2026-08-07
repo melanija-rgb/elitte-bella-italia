@@ -378,7 +378,7 @@ export default function ReservationSection() {
 
                 <Button
                   type="submit"
-                  className="w-full"
+                  className="w-full text-white"
                   disabled={!selectedSlot || submitting}
                 >
                   {submitting ? "Slanje..." : "Rezerviši sto"}

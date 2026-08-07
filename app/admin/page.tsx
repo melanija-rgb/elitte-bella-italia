@@ -9,12 +9,13 @@ import {
   Users,
   ArrowLeft,
   LogOut,
-  Palette,
-  RotateCcw,
+  ImagePlus,
+  Images,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Logo from "@/components/Logo";
@@ -26,34 +27,29 @@ import {
   getAllBookings,
   getAvailableSlots,
 } from "@/lib/storage";
-import {
-  getTheme,
-  saveTheme,
-  resetTheme,
-  THEME_PRESETS,
-  type Theme,
-} from "@/lib/theme";
-import { Booking, TimeSlot } from "@/lib/types";
+import { Booking, GalleryItem, TimeSlot } from "@/lib/types";
 
-type Tab = "slots" | "bookings" | "settings";
+type Tab = "slots" | "bookings" | "gallery";
 
 export default function AdminPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("19:00");
   const [tab, setTab] = useState<Tab>("bookings");
   const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<Theme>(getTheme());
-  const [themeSaved, setThemeSaved] = useState(false);
   const [availableCount, setAvailableCount] = useState(0);
   const [bookedIds, setBookedIds] = useState<Set<string>>(new Set());
+  const [uploading, setUploading] = useState(false);
+  const [galleryError, setGalleryError] = useState("");
 
   useEffect(() => {
     setMounted(true);
-    setTheme(getTheme());
     refresh();
+    refreshGallery();
   }, []);
 
   function refresh() {
@@ -63,6 +59,62 @@ export default function AdminPage() {
     setBookings(allBookings);
     setBookedIds(new Set(allBookings.map((b) => b.slotId)));
     setAvailableCount(getAvailableSlots().length);
+  }
+
+  async function refreshGallery() {
+    try {
+      const res = await fetch("/api/gallery", { cache: "no-store" });
+      const data = await res.json();
+      if (Array.isArray(data.items)) setGallery(data.items);
+    } catch {
+      setGalleryError("Ne mogu učitati galeriju.");
+    }
+  }
+
+  async function handleUploadPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    setGalleryError("");
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("alt", "Elitte Bella Italia");
+      const res = await fetch("/api/gallery", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGalleryError(data.error || "Upload nije uspio.");
+        return;
+      }
+      await refreshGallery();
+    } catch {
+      setGalleryError("Upload nije uspio.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleDeletePhoto(id: string) {
+    if (!confirm("Obrisati ovu fotografiju iz galerije?")) return;
+    setGalleryError("");
+    try {
+      const res = await fetch(`/api/gallery?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGalleryError(data.error || "Brisanje nije uspjelo.");
+        return;
+      }
+      await refreshGallery();
+    } catch {
+      setGalleryError("Brisanje nije uspjelo.");
+    }
   }
 
   function handleAddSlot(e: React.FormEvent) {
@@ -91,31 +143,6 @@ export default function AdminPage() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
     router.refresh();
-  }
-
-  function handleThemeChange(field: keyof Theme, value: string) {
-    setTheme((prev) => ({ ...prev, [field]: value }));
-    setThemeSaved(false);
-  }
-
-  function handleSaveTheme() {
-    saveTheme(theme);
-    setThemeSaved(true);
-    setTimeout(() => setThemeSaved(false), 2000);
-  }
-
-  function handleResetTheme() {
-    const defaults = resetTheme();
-    setTheme(defaults);
-    setThemeSaved(true);
-    setTimeout(() => setThemeSaved(false), 2000);
-  }
-
-  function applyPreset(preset: Theme) {
-    setTheme(preset);
-    saveTheme(preset);
-    setThemeSaved(true);
-    setTimeout(() => setThemeSaved(false), 2000);
   }
 
   if (!mounted) {
@@ -157,15 +184,16 @@ export default function AdminPage() {
             Admin — šef restorana
           </h1>
           <p className="mt-1 text-[var(--color-muted)]">
-            Pregledajte rezervacije stolova i upravljajte slobodnim terminima
+            Upravljajte rezervacijama, terminima i galerijom fotografija
           </p>
         </div>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Ukupno termina", value: slots.length, icon: Calendar },
             { label: "Slobodnih", value: availableCount, icon: Calendar },
             { label: "Rezervacija", value: bookings.length, icon: Users },
+            { label: "Fotografija", value: gallery.length, icon: Images },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -185,7 +213,7 @@ export default function AdminPage() {
             [
               { id: "bookings", label: "Rezervacije" },
               { id: "slots", label: "Termini" },
-              { id: "settings", label: "Izgled" },
+              { id: "gallery", label: "Galerija" },
             ] as const
           ).map((t) => (
             <button
@@ -198,8 +226,8 @@ export default function AdminPage() {
                   : "bg-[var(--color-surface)] text-[var(--color-muted)] hover:text-white"
               }`}
             >
-              {t.id === "settings" && (
-                <Palette className="mr-1.5 inline h-4 w-4" />
+              {t.id === "gallery" && (
+                <Images className="mr-1.5 inline h-4 w-4" />
               )}
               {t.label}
             </button>
@@ -240,7 +268,7 @@ export default function AdminPage() {
                     className="w-36"
                   />
                 </div>
-                <Button type="submit">
+                <Button type="submit" className="text-white">
                   <Plus className="mr-2 h-4 w-4" />
                   Dodaj termin
                 </Button>
@@ -358,94 +386,80 @@ export default function AdminPage() {
           </div>
         )}
 
-        {tab === "settings" && (
+        {tab === "gallery" && (
           <div className="space-y-6">
             <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-              <h2 className="mb-4 font-display text-xl text-white">
-                Brzi šabloni
+              <h2 className="mb-2 font-display text-xl text-white">
+                Galerija fotografija
               </h2>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {THEME_PRESETS.map((preset) => (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => applyPreset(preset.theme)}
-                    className="border border-[var(--color-border)] p-4 text-left transition-colors hover:border-primary"
-                  >
-                    <div className="mb-2 flex gap-1.5">
-                      <div
-                        className="h-6 w-6 rounded-full"
-                        style={{ backgroundColor: preset.theme.primary }}
-                      />
-                      <div
-                        className="h-6 w-6 rounded-full"
-                        style={{ backgroundColor: preset.theme.background }}
-                      />
-                    </div>
-                    <p className="text-sm font-medium text-white">
-                      {preset.name}
-                    </p>
-                  </button>
-                ))}
-              </div>
+              <p className="mb-5 text-sm text-[var(--color-muted)]">
+                Dodajte nove slike ili obrišite postojeće. Izmjene se odmah
+                vide na sajtu.
+              </p>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleUploadPhoto}
+              />
+
+              <Button
+                type="button"
+                className="text-white"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImagePlus className="mr-2 h-4 w-4" />
+                {uploading ? "Dodavanje..." : "Dodaj fotografiju"}
+              </Button>
+
+              {galleryError && (
+                <p className="mt-4 rounded-md bg-red-950/60 px-3 py-2 text-sm text-red-300">
+                  {galleryError}
+                </p>
+              )}
             </div>
 
-            <div className="border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-              <h2 className="mb-4 font-display text-xl text-white">
-                Prilagođene boje
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-white/80">
-                    Naziv brenda
-                  </label>
-                  <Input
-                    value={theme.brandName}
-                    onChange={(e) =>
-                      handleThemeChange("brandName", e.target.value)
-                    }
-                  />
-                </div>
-                {(
-                  [
-                    { key: "primary", label: "Primarna boja" },
-                    { key: "primaryHover", label: "Primarna (hover)" },
-                    { key: "dark", label: "Boja teksta" },
-                    { key: "background", label: "Pozadina stranice" },
-                    { key: "light", label: "Akcent pozadina" },
-                  ] as const
-                ).map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="mb-1.5 block text-sm font-medium text-white/80">
-                      {label}
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={theme[key]}
-                        onChange={(e) => handleThemeChange(key, e.target.value)}
-                        className="h-10 w-14 cursor-pointer rounded-md border border-[var(--color-border)] bg-transparent"
-                      />
-                      <Input
-                        value={theme[key]}
-                        onChange={(e) => handleThemeChange(key, e.target.value)}
-                        className="font-mono text-sm"
-                      />
-                    </div>
-                  </div>
-                ))}
+            <div className="border border-[var(--color-border)] bg-[var(--color-surface)]">
+              <div className="border-b border-[var(--color-border)] px-6 py-4">
+                <h2 className="font-display text-xl text-white">
+                  Sve fotografije ({gallery.length})
+                </h2>
               </div>
 
-              <div className="mt-6 flex items-center gap-3">
-                <Button onClick={handleSaveTheme}>Sačuvaj izgled</Button>
-                <Button variant="secondary" onClick={handleResetTheme}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Vrati podrazumevano
-                </Button>
-                {themeSaved && (
-                  <span className="text-sm text-green-400">Sačuvano!</span>
-                )}
-              </div>
+              {gallery.length === 0 ? (
+                <p className="p-8 text-center text-sm text-[var(--color-muted)]">
+                  Nema fotografija. Dodajte prvu dugmetom iznad.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 md:grid-cols-4 md:p-6">
+                  {gallery.map((item) => (
+                    <div
+                      key={item.id}
+                      className="group relative aspect-square overflow-hidden border border-[var(--color-border)] bg-black"
+                    >
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        unoptimized={item.src.startsWith("/api/")}
+                        className="object-cover"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePhoto(item.id)}
+                        className="absolute top-2 right-2 rounded-md bg-black/70 p-2 text-white opacity-100 transition-colors hover:bg-red-700 sm:opacity-0 sm:group-hover:opacity-100"
+                        title="Obriši fotografiju"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

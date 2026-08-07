@@ -78,7 +78,7 @@ function LoginForm() {
               </p>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full text-white" disabled={loading}>
               {loading ? "Prijava..." : "Prijavi se"}
             </Button>
           </form>

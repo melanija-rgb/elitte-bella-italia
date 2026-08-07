@@ -1,9 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { GALLERY } from "@/lib/restaurant";
+import { useEffect, useState } from "react";
+import type { GalleryItem } from "@/lib/types";
 
 export default function GallerySection() {
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/gallery", { cache: "no-store" });
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data.items)) {
+          setItems(data.items);
+        }
+      } catch {
+        if (!cancelled) setItems([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section id="galerija" className="bg-black px-4 py-14 sm:px-5 sm:py-20 md:px-8">
       <div className="mx-auto max-w-6xl">
@@ -19,24 +46,35 @@ export default function GallerySection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4">
-          {GALLERY.map((item, i) => (
-            <div
-              key={item.src}
-              className={`relative overflow-hidden ${
-                i === 0 ? "col-span-2 aspect-[16/10] md:aspect-[4/3]" : "aspect-square sm:aspect-[4/3]"
-              } ${i === 5 ? "md:col-span-2" : ""}`}
-            >
-              <Image
-                src={item.src}
-                alt={item.alt}
-                fill
-                className="object-cover transition-transform duration-700 hover:scale-105"
-                sizes="(max-width: 768px) 50vw, 33vw"
-              />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-sm text-[var(--color-muted)]">Učitavanje galerije...</p>
+        ) : items.length === 0 ? (
+          <p className="text-sm text-[var(--color-muted)]">
+            Galerija je trenutno prazna.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4">
+            {items.map((item, i) => (
+              <div
+                key={item.id}
+                className={`relative overflow-hidden ${
+                  i === 0
+                    ? "col-span-2 aspect-[16/10] md:aspect-[4/3]"
+                    : "aspect-square sm:aspect-[4/3]"
+                } ${i === 5 ? "md:col-span-2" : ""}`}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  unoptimized={item.src.startsWith("/api/")}
+                  className="object-cover transition-transform duration-700 hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, 33vw"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

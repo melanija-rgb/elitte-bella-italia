@@ -1,4 +1,4 @@
-import { Clock3, MapPin, Phone } from "lucide-react";
+import { Clock3, Instagram, MapPin, Phone } from "lucide-react";
 import { RESTAURANT } from "@/lib/restaurant";
 
 export default function ContactSection() {
@@ -65,9 +65,10 @@ export default function ContactSection() {
               href={RESTAURANT.instagram}
               target="_blank"
               rel="noreferrer"
-              className="inline-block py-2 text-sm tracking-wide text-white/70 uppercase transition-colors hover:text-primary"
+              className="flex items-center gap-3 border border-[var(--color-border)] bg-[var(--color-surface)] p-4 transition-colors hover:border-primary sm:gap-4 sm:p-5"
             >
-              Instagram · @elitte_bella_italia
+              <Instagram className="h-5 w-5 shrink-0 text-primary" />
+              <span className="text-base text-white sm:text-lg">Instagram</span>
             </a>
           </div>
 
