@@ -17,10 +17,14 @@ export async function GET() {
     const items = await getGalleryItems();
     return NextResponse.json({ items });
   } catch {
-    return NextResponse.json(
-      { error: "Greška pri učitavanju galerije." },
-      { status: 500 }
-    );
+    // Always return the built-in gallery so the public page never looks empty
+    const { GALLERY } = await import("@/lib/restaurant");
+    const items = GALLERY.map((item, index) => ({
+      id: `static-${index + 1}`,
+      src: item.src,
+      alt: item.alt,
+    }));
+    return NextResponse.json({ items });
   }
 }
 

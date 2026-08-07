@@ -2,10 +2,17 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { GALLERY } from "@/lib/restaurant";
 import type { GalleryItem } from "@/lib/types";
 
+const FALLBACK: GalleryItem[] = GALLERY.map((item, index) => ({
+  id: `static-${index + 1}`,
+  src: item.src,
+  alt: item.alt,
+}));
+
 export default function GallerySection() {
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>(FALLBACK);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,11 +22,11 @@ export default function GallerySection() {
       try {
         const res = await fetch("/api/gallery", { cache: "no-store" });
         const data = await res.json();
-        if (!cancelled && Array.isArray(data.items)) {
+        if (!cancelled && Array.isArray(data.items) && data.items.length > 0) {
           setItems(data.items);
         }
       } catch {
-        if (!cancelled) setItems([]);
+        /* keep fallback photos */
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -46,7 +53,7 @@ export default function GallerySection() {
           </p>
         </div>
 
-        {loading ? (
+        {loading && items.length === 0 ? (
           <p className="text-sm text-[var(--color-muted)]">Učitavanje galerije...</p>
         ) : items.length === 0 ? (
           <p className="text-sm text-[var(--color-muted)]">

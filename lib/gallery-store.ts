@@ -67,16 +67,26 @@ async function writeManifestBlobs(items: GalleryItem[]) {
 }
 
 export async function getGalleryItems(): Promise<GalleryItem[]> {
-  if (useNetlifyBlobs()) {
-    const fromBlobs = await readManifestBlobs();
-    if (fromBlobs) return fromBlobs;
+  try {
+    if (useNetlifyBlobs()) {
+      const fromBlobs = await readManifestBlobs();
+      if (fromBlobs) return fromBlobs;
+    }
+
+    const fromFs = await readManifestFs();
+    if (fromFs) return fromFs;
+  } catch {
+    /* fall through to defaults */
   }
 
-  const fromFs = await readManifestFs();
-  if (fromFs) return fromFs;
-
   const seeded = defaultItems();
-  await writeManifestFs(seeded);
+
+  try {
+    await writeManifestFs(seeded);
+  } catch {
+    /* Netlify filesystem is read-only — ignore */
+  }
+
   if (useNetlifyBlobs()) {
     try {
       await writeManifestBlobs(seeded);
@@ -84,11 +94,16 @@ export async function getGalleryItems(): Promise<GalleryItem[]> {
       /* ignore */
     }
   }
+
   return seeded;
 }
 
 async function saveManifest(items: GalleryItem[]) {
-  await writeManifestFs(items);
+  try {
+    await writeManifestFs(items);
+  } catch {
+    /* ignore read-only FS */
+  }
   if (useNetlifyBlobs()) {
     try {
       await writeManifestBlobs(items);
