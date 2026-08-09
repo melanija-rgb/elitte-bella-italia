@@ -31,12 +31,6 @@ export default function SiteHeader() {
               {link.label}
             </a>
           ))}
-          <a
-            href="/admin"
-            className="text-xs tracking-widest text-white/40 uppercase transition-colors hover:text-primary"
-          >
-            Admin
-          </a>
         </nav>
         <button
           type="button"
@@ -61,13 +55,6 @@ export default function SiteHeader() {
                 {link.label}
               </a>
             ))}
-            <a
-              href="/admin"
-              className="py-3.5 text-sm text-white/40"
-              onClick={() => setOpen(false)}
-            >
-              Admin
-            </a>
           </nav>
         </div>
       )}

@@ -151,8 +151,7 @@ export default function ReservationSection() {
           </h2>
           <p className="mt-3 text-sm text-[var(--color-muted)] sm:mt-4 sm:text-base">
             Označite datum i vrijeme, zatim upišite ime i prezime, broj telefona
-            i za koliko osoba vam treba sto. Šef restorana pregleda rezervacije
-            u admin panelu.
+            i za koliko osoba vam treba sto.
           </p>
         </div>
 
