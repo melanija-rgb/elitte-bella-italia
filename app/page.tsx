@@ -40,7 +40,7 @@ export default function HomePage() {
               "Autentična pizza i italijanski duh",
               "Odlična kafa i deserti",
               "Ugodan ambijent na dva sprata i bašti",
-              "Radimo svaki dan od 07:00 do ponoći",
+              "Radimo svaki dan od 07:00 do 23:00",
             ].map((item) => (
               <div key={item} className="flex items-start gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 bg-primary" />
