@@ -19,14 +19,6 @@ import { useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Logo from "@/components/Logo";
-import {
-  addSlot,
-  deleteSlot,
-  deleteBooking,
-  getAllSlots,
-  getAllBookings,
-  getAvailableSlots,
-} from "@/lib/storage";
 import { Booking, GalleryItem, TimeSlot } from "@/lib/types";
 
 type Tab = "slots" | "bookings" | "gallery";
@@ -45,6 +37,7 @@ export default function AdminPage() {
   const [bookedIds, setBookedIds] = useState<Set<string>>(new Set());
   const [uploading, setUploading] = useState(false);
   const [galleryError, setGalleryError] = useState("");
+  const [reservationsError, setReservationsError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -52,13 +45,43 @@ export default function AdminPage() {
     refreshGallery();
   }, []);
 
-  function refresh() {
-    const allSlots = getAllSlots();
-    const allBookings = getAllBookings();
-    setSlots(allSlots);
-    setBookings(allBookings);
-    setBookedIds(new Set(allBookings.map((b) => b.slotId)));
-    setAvailableCount(getAvailableSlots().length);
+  async function refresh() {
+    setReservationsError("");
+    try {
+      const [slotsRes, bookingsRes] = await Promise.all([
+        fetch("/api/admin/slots", { cache: "no-store" }),
+        fetch("/api/bookings", { cache: "no-store" }),
+      ]);
+      const slotsData = await slotsRes.json();
+      const bookingsData = await bookingsRes.json();
+
+      if (!slotsRes.ok || !bookingsRes.ok) {
+        setReservationsError(
+          slotsData.error ||
+            bookingsData.error ||
+            "Ne mogu učitati rezervacije."
+        );
+        return;
+      }
+
+      const allSlots: TimeSlot[] = Array.isArray(slotsData.slots)
+        ? slotsData.slots
+        : [];
+      const allBookings: Booking[] = Array.isArray(bookingsData.bookings)
+        ? bookingsData.bookings
+        : [];
+
+      setSlots(allSlots);
+      setBookings(allBookings);
+      setBookedIds(new Set(allBookings.map((b) => b.slotId)));
+      setAvailableCount(
+        typeof slotsData.availableCount === "number"
+          ? slotsData.availableCount
+          : allSlots.length - allBookings.length
+      );
+    } catch {
+      setReservationsError("Ne mogu učitati rezervacije.");
+    }
   }
 
   async function refreshGallery() {
@@ -117,26 +140,68 @@ export default function AdminPage() {
     }
   }
 
-  function handleAddSlot(e: React.FormEvent) {
+  async function handleAddSlot(e: React.FormEvent) {
     e.preventDefault();
     if (!newDate || !newTime) return;
-    addSlot(newDate, newTime);
-    setNewDate("");
-    setNewTime("19:00");
-    refresh();
+    setReservationsError("");
+    try {
+      const res = await fetch("/api/admin/slots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: newDate, time: newTime }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReservationsError(data.error || "Dodavanje termina nije uspjelo.");
+        return;
+      }
+      setNewDate("");
+      setNewTime("19:00");
+      await refresh();
+    } catch {
+      setReservationsError("Dodavanje termina nije uspjelo.");
+    }
   }
 
-  function handleDeleteSlot(id: string) {
+  async function handleDeleteSlot(id: string) {
     if (!confirm("Obrisati ovaj termin?")) return;
-    deleteSlot(id);
-    refresh();
+    setReservationsError("");
+    try {
+      const res = await fetch(
+        `/api/admin/slots?id=${encodeURIComponent(id)}`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        setReservationsError(data.error || "Brisanje termina nije uspjelo.");
+        return;
+      }
+      await refresh();
+    } catch {
+      setReservationsError("Brisanje termina nije uspjelo.");
+    }
   }
 
-  function handleDeleteBooking(id: string) {
+  async function handleDeleteBooking(id: string) {
     if (!confirm("Obrisati rezervaciju? Termin će ponovo biti slobodan."))
       return;
-    deleteBooking(id);
-    refresh();
+    setReservationsError("");
+    try {
+      const res = await fetch(
+        `/api/bookings?id=${encodeURIComponent(id)}`,
+        { method: "DELETE" }
+      );
+      const data = await res.json();
+      if (!res.ok) {
+        setReservationsError(
+          data.error || "Brisanje rezervacije nije uspjelo."
+        );
+        return;
+      }
+      await refresh();
+    } catch {
+      setReservationsError("Brisanje rezervacije nije uspjelo.");
+    }
   }
 
   async function handleLogout() {
@@ -233,6 +298,12 @@ export default function AdminPage() {
             </button>
           ))}
         </div>
+
+        {reservationsError && (
+          <p className="mb-6 rounded-md bg-red-950/60 px-3 py-2 text-sm text-red-300">
+            {reservationsError}
+          </p>
+        )}
 
         {tab === "slots" && (
           <>

@@ -17,7 +17,6 @@ import { CheckCircle, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
-import { createBooking, getAvailableSlots } from "@/lib/storage";
 import { TimeSlot } from "@/lib/types";
 import { cn, DAYS_SR, MONTHS_SR } from "@/lib/utils";
 
@@ -32,9 +31,20 @@ export default function ReservationSection() {
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  async function loadSlots() {
+    const res = await fetch("/api/slots", { cache: "no-store" });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Ne mogu učitati termine.");
+    }
+    setSlots(Array.isArray(data.slots) ? data.slots : []);
+  }
+
   useEffect(() => {
     setMounted(true);
-    setSlots(getAvailableSlots());
+    loadSlots().catch(() => {
+      setError("Ne mogu učitati dostupne termine. Pokušajte ponovo.");
+    });
   }, []);
 
   const slotsByDate = useMemo(() => {
@@ -63,7 +73,7 @@ export default function ReservationSection() {
     ? slotsByDate.get(format(selectedDate, "yyyy-MM-dd")) || []
     : [];
 
-  function handleBook(e: React.FormEvent) {
+  async function handleBook(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
@@ -81,10 +91,30 @@ export default function ReservationSection() {
     }
 
     setSubmitting(true);
-    createBooking(selectedSlot, form);
-    setSlots(getAvailableSlots());
-    setSubmitting(false);
-    setConfirmed(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slotId: selectedSlot.id,
+          fullName: form.fullName,
+          phone: form.phone,
+          guests: form.guests,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Rezervacija nije uspjela.");
+        await loadSlots().catch(() => undefined);
+        return;
+      }
+      await loadSlots().catch(() => undefined);
+      setConfirmed(true);
+    } catch {
+      setError("Rezervacija nije uspjela. Pokušajte ponovo.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!mounted) {
