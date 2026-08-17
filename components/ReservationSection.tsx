@@ -153,8 +153,14 @@ export default function ReservationSection() {
               Telefon: {form.phone}
             </p>
           </div>
-          <Button
-            className="mt-8"
+          <button
+            type="button"
+            style={{
+              color: "#ffffff",
+              border: "2px solid #c4a35a",
+              background: "transparent",
+            }}
+            className="mt-8 inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-medium"
             onClick={() => {
               setConfirmed(false);
               setSelectedSlot(null);
@@ -163,7 +169,7 @@ export default function ReservationSection() {
             }}
           >
             Nova rezervacija
-          </Button>
+          </button>
         </div>
       </section>
     );
