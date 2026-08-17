@@ -361,7 +361,7 @@ export default function ReservationSection() {
                     onChange={(e) =>
                       setForm({ ...form, fullName: e.target.value })
                     }
-                    placeholder="Marko Marković"
+                    placeholder=""
                     required
                   />
                 </div>
@@ -375,7 +375,7 @@ export default function ReservationSection() {
                     onChange={(e) =>
                       setForm({ ...form, phone: e.target.value })
                     }
-                    placeholder="+387 65 123 456"
+                    placeholder=""
                     required
                   />
                 </div>
