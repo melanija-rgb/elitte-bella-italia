@@ -34,13 +34,13 @@ export default function Hero() {
 
         <div className="mt-8 flex w-full flex-col gap-3 sm:mt-10 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
           <a
-            href="#rezervacija"
+            href="/rezervacija"
             className="bg-primary px-6 py-3.5 text-center text-sm font-semibold tracking-wide text-white uppercase transition-colors hover:bg-[var(--color-primary-hover)] sm:py-3"
           >
             Rezerviši sto
           </a>
           <a
-            href="#galerija"
+            href="/galerija"
             className="border border-white/35 px-6 py-3.5 text-center text-sm tracking-wide text-white uppercase transition-colors hover:border-primary hover:text-primary sm:py-3"
           >
             Pogledaj galeriju

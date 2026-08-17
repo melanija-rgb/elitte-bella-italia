@@ -1,12 +1,12 @@
-import Hero from "@/components/Hero";
+import ContactSection from "@/components/ContactSection";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 
-export default function HomePage() {
+export default function ContactPage() {
   return (
     <div className="bg-page text-dark">
-      <SiteHeader variant="overlay" />
-      <Hero />
+      <SiteHeader variant="solid" />
+      <ContactSection />
       <SiteFooter />
     </div>
   );
