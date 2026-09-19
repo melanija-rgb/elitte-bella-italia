@@ -7,7 +7,8 @@ const STORE_NAME = "reservations";
 const STATE_KEY = "state";
 const DATA_DIR = path.join(process.cwd(), "data");
 const STATE_PATH = path.join(DATA_DIR, "reservations.json");
-const SEED_VERSION = "9-21-hourly-rolling";
+const SEED_VERSION = "through-2027-12";
+const BOOKING_END = new Date(2027, 11, 31); // 31.12.2027
 
 const BOOKING_TIMES = [
   "09:00",
@@ -48,19 +49,25 @@ function todayKey(): string {
 
 function buildSeedSlots(): TimeSlot[] {
   const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const demo: TimeSlot[] = [];
   const stamp = todayKey().replace(/-/g, "");
+  let dayIndex = 0;
 
-  for (let d = 0; d <= 21; d++) {
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + d);
+  for (
+    let date = new Date(start);
+    date <= BOOKING_END;
+    date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
+  ) {
     const dateStr = toDateKey(date);
     BOOKING_TIMES.forEach((time, i) => {
       demo.push({
-        id: `demo-${stamp}-${d}-${i}`,
+        id: `demo-${stamp}-${dayIndex}-${i}`,
         date: dateStr,
         time,
       });
     });
+    dayIndex += 1;
   }
 
   return demo;
