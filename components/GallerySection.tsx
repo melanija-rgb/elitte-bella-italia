@@ -110,7 +110,7 @@ export default function GallerySection() {
                 onContextMenu={protectImage}
                 onDragStart={protectImage}
                 className="mx-auto h-full w-full select-none object-contain"
-                style={{ WebkitUserDrag: "none", userSelect: "none" }}
+                style={{ userSelect: "none" }}
               />
             </div>
           </div>,
@@ -164,7 +164,7 @@ export default function GallerySection() {
                   onDragStart={protectImage}
                   className="pointer-events-none select-none object-cover transition-transform duration-700 hover:scale-105"
                   sizes="(max-width: 768px) 50vw, 33vw"
-                  style={{ WebkitUserDrag: "none", userSelect: "none" }}
+                  style={{ userSelect: "none" }}
                 />
               </button>
             ))}
