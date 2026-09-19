@@ -7,7 +7,7 @@ const STORE_NAME = "reservations";
 const STATE_KEY = "state";
 const DATA_DIR = path.join(process.cwd(), "data");
 const STATE_PATH = path.join(DATA_DIR, "reservations.json");
-const SEED_VERSION = "9-21-hourly";
+const SEED_VERSION = "9-21-hourly-rolling";
 
 const BOOKING_TIMES = [
   "09:00",
@@ -35,17 +35,28 @@ function useNetlifyBlobs(): boolean {
   return Boolean(process.env.NETLIFY || process.env.NETLIFY_BLOBS_CONTEXT);
 }
 
+function toDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function todayKey(): string {
+  return toDateKey(new Date());
+}
+
 function buildSeedSlots(): TimeSlot[] {
   const today = new Date();
   const demo: TimeSlot[] = [];
+  const stamp = todayKey().replace(/-/g, "");
 
   for (let d = 0; d <= 21; d++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() + d);
-    const dateStr = date.toISOString().split("T")[0];
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + d);
+    const dateStr = toDateKey(date);
     BOOKING_TIMES.forEach((time, i) => {
       demo.push({
-        id: `demo-${d}-${i}`,
+        id: `demo-${stamp}-${d}-${i}`,
         date: dateStr,
         time,
       });
@@ -132,9 +143,16 @@ async function persistState(state: ReservationsState) {
 }
 
 function withSeed(state: ReservationsState): ReservationsState {
-  if (state.seedVersion === SEED_VERSION && state.slots.length > 0) {
+  const today = todayKey();
+  const hasFutureSlots = state.slots.some((s) => s.date >= today);
+  if (
+    state.seedVersion === SEED_VERSION &&
+    state.slots.length > 0 &&
+    hasFutureSlots
+  ) {
     return state;
   }
+
   return {
     ...state,
     seedVersion: SEED_VERSION,
@@ -160,7 +178,8 @@ export async function getReservationsState(): Promise<ReservationsState> {
   const seeded = withSeed(state);
   if (
     seeded.seedVersion !== state.seedVersion ||
-    seeded.slots.length !== state.slots.length
+    seeded.slots.length !== state.slots.length ||
+    seeded.slots[0]?.date !== state.slots[0]?.date
   ) {
     await persistState(seeded);
   }
